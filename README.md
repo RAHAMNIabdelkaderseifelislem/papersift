@@ -39,7 +39,7 @@ pip install "papersift[fulltext]"  # full-text ranking (PDF text extraction)
 For development:
 
 ```bash
-git clone https://github.com/<your-username>/papersift.git
+git clone https://github.com/RAHAMNIabdelkaderseifelislem/papersift.git
 cd papersift
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate

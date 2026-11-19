@@ -1,0 +1,1 @@
+"""Scout class tying providers, sources, ranking and storage together (to be built)."""

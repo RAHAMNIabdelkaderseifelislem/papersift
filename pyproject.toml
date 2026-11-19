@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "papersift"
+version = "0.0.1"
+description = "LLM-powered agent that finds, ranks and downloads research papers relevant to your project."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Seif El Islem" }]
+keywords = ["arxiv", "llm", "research", "literature-review", "agents"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Science/Research",
+]
+dependencies = [
+    "arxiv>=2.0",
+    "requests>=2.31",
+    "pydantic>=2.0",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+gui = ["streamlit>=1.30", "pandas>=2.0"]
+fulltext = ["pymupdf>=1.23"]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+papersift = "papersift.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/RAHAMNIabdelkaderseifelislem/papersift"
+Issues = "https://github.com/RAHAMNIabdelkaderseifelislem/papersift/issues"
+
+[tool.setuptools.packages.find]
+include = ["papersift*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
