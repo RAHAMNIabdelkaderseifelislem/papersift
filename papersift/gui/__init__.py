@@ -1,1 +1,1 @@
-"""Optional GUI (install with: pip install "papersift[gui]")."""
+"""Optional GUI (install with: pip install "papersift[gui]")"""
