@@ -12,6 +12,14 @@ from papersift.keywords import generate_keywords
 from papersift.models import Paper
 from papersift.providers import LLMProvider, ProviderError
 from papersift.ranking import Assessment, AssessmentError, assess_abstract
+from papersift.ranking.fulltext import (
+    FulltextError,
+    assess_fulltext,
+    combine_scores,
+    extract_text,
+    require_pymupdf,
+    select_sections,
+)
 from papersift.sources import PaperSource
 from papersift.sources.arxiv import ArxivSource
 from papersift.store import Store
@@ -26,6 +34,7 @@ class ScoutResult:
     paper: Paper
     score: int
     abstract_assessment: Assessment
+    fulltext_assessment: Assessment | None = None
     pdf_path: Path | None = None
     metadata_path: Path | None = None
     from_cache: bool = False
@@ -52,6 +61,11 @@ class Scout:
         output_dir: str | Path = "papersift_output",
         source: PaperSource | None = None,
         use_cache: bool = True,
+        fulltext: bool = False,
+        triage_threshold: int = 60,
+        top_k_fulltext: int = 10,
+        fulltext_weight: float = 0.6,
+        max_fulltext_chars: int = 12000,
     ):
         self.project_title = project_title
         self.provider = provider
@@ -62,6 +76,13 @@ class Scout:
         self.output_dir = Path(output_dir)
         self.source = source or ArxivSource()
         self.use_cache = use_cache
+        self.fulltext = fulltext
+        self.triage_threshold = triage_threshold
+        self.top_k_fulltext = top_k_fulltext
+        self.fulltext_weight = fulltext_weight
+        self.max_fulltext_chars = max_fulltext_chars
+        if fulltext:
+            require_pymupdf()  # fail early, before spending any LLM calls
         self.pdfs_dir = self.output_dir / "pdfs"
         self.metadata_dir = self.output_dir / "metadata"
         self.cache_dir = self.output_dir / ".cache"
@@ -118,11 +139,49 @@ class Scout:
     # ------------------------------------------------------------ selection
     def _select(self, scored, store: Store) -> list[tuple[Paper, int, dict]]:
         """Decide which papers to keep. Returns (paper, final_score, assessments)."""
-        return [
-            (paper, assessment.score, {"abstract": assessment.to_dict()})
-            for paper, assessment, _ in scored
-            if assessment.score >= self.relevance_threshold
-        ]
+        if not self.fulltext:
+            return [
+                (paper, assessment.score, {"abstract": assessment.to_dict()})
+                for paper, assessment, _ in scored
+                if assessment.score >= self.relevance_threshold
+            ]
+        # Stage 2: only the best abstract scores are read in full.
+        candidates = sorted(
+            (item for item in scored if item[1].score >= self.triage_threshold),
+            key=lambda item: item[1].score,
+            reverse=True,
+        )[: self.top_k_fulltext]
+        logger.info("Reading the full text of %d paper(s)", len(candidates))
+        selected = []
+        for paper, abstract, _ in candidates:
+            assessments = {"abstract": abstract.to_dict()}
+            final = abstract.score
+            fulltext = self._stage_two(paper, store)
+            if fulltext is not None:
+                assessments["fulltext"] = fulltext.to_dict()
+                final = combine_scores(abstract.score, fulltext.score, self.fulltext_weight)
+                logger.info("Full text %d, combined %d: %s", fulltext.score, final, paper.title)
+            if final >= self.relevance_threshold:
+                selected.append((paper, final, assessments))
+        return selected
+
+    # -------------------------------------------------------------- stage 2
+    def _stage_two(self, paper: Paper, store: Store) -> Assessment | None:
+        """Score the paper from its full text; None if that is not possible."""
+        cached = store.get(paper.arxiv_id) if self.use_cache else None
+        if cached and cached["fulltext_assessment"]:
+            return Assessment.from_dict(cached["fulltext_assessment"])
+        pdf = self.cache_dir / "pdfs" / f"{safe_id(paper.arxiv_id)}.pdf"
+        try:
+            if not pdf.exists():
+                download_pdf(paper, pdf)
+            excerpts = select_sections(extract_text(pdf), self.max_fulltext_chars)
+            assessment = assess_fulltext(self.provider, self.project_title, paper, excerpts)
+        except (DownloadError, FulltextError, AssessmentError, ProviderError) as exc:
+            logger.warning("Full-text scoring failed for '%s' (%s); using the abstract score", paper.title, exc)
+            return None
+        store.upsert(paper.arxiv_id, fulltext_assessment=assessment.to_dict())
+        return assessment
 
     # ------------------------------------------------------------- finalize
     def _finalize(self, paper: Paper, score: int, assessments: dict, store: Store) -> ScoutResult:
@@ -134,6 +193,9 @@ class Scout:
             paper=paper,
             score=score,
             abstract_assessment=Assessment.from_dict(assessments["abstract"]),
+            fulltext_assessment=(
+                Assessment.from_dict(assessments["fulltext"]) if "fulltext" in assessments else None
+            ),
             pdf_path=pdf_path,
             metadata_path=metadata_path,
         )

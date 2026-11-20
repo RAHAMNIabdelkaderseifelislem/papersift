@@ -8,6 +8,7 @@ import sys
 
 from papersift import __version__
 from papersift.core import Scout
+from papersift.ranking.fulltext import FulltextError
 from papersift.providers import (
     FallbackProvider,
     LLMProvider,
@@ -42,6 +43,10 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--max-results", type=int, default=100, help="maximum arXiv results to consider")
     run.add_argument("--keywords", type=int, default=6, help="number of search keywords to generate")
     run.add_argument("--output", default="papersift_output", help="output folder")
+    run.add_argument("--fulltext", action="store_true", help="also score the top papers from their full text")
+    run.add_argument("--triage-threshold", type=int, default=60, help="min abstract score to read a paper in full")
+    run.add_argument("--top-k", type=int, default=10, help="how many papers to read in full")
+    run.add_argument("--fulltext-weight", type=float, default=0.6, help="weight of the full-text score (0-1)")
     run.add_argument("--no-cache", action="store_true", help="ignore previously saved scores")
     run.add_argument("-v", "--verbose", action="store_true", help="show detailed progress")
 
@@ -76,6 +81,10 @@ def _run(args: argparse.Namespace) -> int:
         n_keywords=args.keywords,
         output_dir=args.output,
         use_cache=not args.no_cache,
+        fulltext=args.fulltext,
+        triage_threshold=args.triage_threshold,
+        top_k_fulltext=args.top_k,
+        fulltext_weight=args.fulltext_weight,
     )
     results = scout.run()
     if not results:
@@ -102,7 +111,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "run":
         try:
             return _run(args)
-        except (ProviderError, SourceError, ValueError) as exc:
+        except (ProviderError, SourceError, FulltextError, ValueError) as exc:
             print(f"Error: {exc}", file=sys.stderr)
             return 1
         except KeyboardInterrupt:
