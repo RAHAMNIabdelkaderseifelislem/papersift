@@ -1,22 +1,30 @@
+
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below."
-title: "papersift"
+message: "If you use PaperSift, please cite the software and, where relevant, the associated research paper."
+
+title: "PaperSift"
 type: software
 version: 0.1.0
+
 authors:
   - family-names: "Rahmani"
-    given-names: "Abdelkader Seif El Islem"
+    given-names: "Abedelkader Seif El Islem"
+  - family-names: "Bennour"
+    given-names: "Mohammed"
+
 repository-code: "https://github.com/RAHAMNIabdelkaderseifelislem/papersift"
+url: "https://github.com/RAHAMNIabdelkaderseifelislem/papersift"
 license: MIT
+
 preferred-citation:
   type: article
   authors:
     - family-names: "Rahmani"
-      given-names: "Abdelkader Seif El"
+      given-names: "Abedelkader Seif El Islem"
     - family-names: "Yahiaoui"
-      given-names: "Y"
+      given-names: "Yasser"
     - family-names: "Bouziane"
-      given-names: "A"
+      given-names: "Abdelghani"
   title: "Architectural Patterns for Self-Improving Intelligent Agents: A Systematic Survey of Generative and Cognitive Approaches"
   journal: "SN Computer Science"
   year: 2026
@@ -24,4 +32,3 @@ preferred-citation:
   start: "746"
   doi: "10.1007/s42979-026-05333-6"
   url: "https://doi.org/10.1007/s42979-026-05333-6"
-  date-published: "2026-09-11"
