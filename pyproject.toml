@@ -7,12 +7,16 @@ name = "papersift"
 version = "0.0.1"
 description = "LLM-powered agent that finds, ranks and downloads research papers relevant to your project."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Seif El Islem" }]
 keywords = ["arxiv", "llm", "research", "literature-review", "agents"]
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "License :: OSI Approved :: MIT License",
     "Intended Audience :: Science/Research",
 ]
