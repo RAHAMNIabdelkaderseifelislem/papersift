@@ -46,7 +46,7 @@ source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -e ".[dev]"
 ```
 
-Requires Python 3.9 or newer.
+Requires Python 3.10 or newer.
 
 ## Quick start
 
