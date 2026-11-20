@@ -4,7 +4,7 @@
 
 `papersift` is an LLM-powered agent that searches arXiv for papers related to your research project, scores how relevant each one is, and downloads the best ones together with structured metadata. It works with local models and with most free online LLM API providers.
 
-> **Status:** early development (pre-release). The original prototype works with a local Ollama model and scores papers from their abstracts. The multi-provider support, full-text ranking and GUI described below are being built now. See the [Roadmap](#roadmap).
+> **Status:** alpha (0.1.0). The command-line tool, multi-provider support, two-stage ranking and caching work. The optional GUI is still in development. See the [Roadmap](#roadmap).
 
 ## Why
 
@@ -13,27 +13,23 @@ Starting a literature review means reading hundreds of abstracts to find the few
 ## Features
 
 - **Project-aware relevance scoring.** You describe your research project once; every paper is scored against it.
-- **Two-stage ranking** *(in progress)*:
-  1. cheap triage of every result from its abstract;
-  2. deeper scoring of only the top papers from their full text.
-- **Many LLM providers** *(in progress)*: local Ollama, Gemini, and any OpenAI-compatible API (for example Groq, OpenRouter, Together, Cerebras, Mistral) through one common interface, with retry on rate limits and optional fallback between providers.
-- **Explainable results.** Each paper gets a score, key strengths, limitations and a recommendation, saved next to the PDF.
-- **Local cache** *(in progress)*: papers already processed are skipped on later runs.
-- **Optional GUI** *(in progress)*: a simple web interface for people who prefer not to use the command line.
+- **Two-stage ranking.** Every result is triaged from its abstract; with `--fulltext`, the best ones are then read in full (introduction, method and conclusion) for a more reliable score.
+- **Rubric-based scores.** The model only fills a small rubric (topic match, method match, novelty); the 0-100 score is computed in code, so it is reproducible and comparable across models.
+- **Many LLM providers.** Local Ollama, Gemini, and any OpenAI-compatible API (Groq, OpenRouter, Together, Cerebras, Mistral, OpenAI, or your own `--base-url`), with automatic retry on rate limits and optional fallback to a backup provider.
+- **Explainable results.** Each saved paper comes with its scores, strengths, limitations and reasoning.
+- **Local cache.** Papers already scored are not scored again, so re-running is cheap.
+- **Optional GUI** *(in development)*.
 
 ## Installation
-
-Once published on PyPI:
 
 ```bash
 pip install papersift
 ```
 
-With the optional extras:
+With full-text ranking:
 
 ```bash
-pip install "papersift[gui]"       # web interface
-pip install "papersift[fulltext]"  # full-text ranking (PDF text extraction)
+pip install "papersift[fulltext]"
 ```
 
 For development:
@@ -42,68 +38,87 @@ For development:
 git clone https://github.com/RAHAMNIabdelkaderseifelislem/papersift.git
 cd papersift
 python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -e ".[dev]"
+source venv/bin/activate        # Windows PowerShell: .\venv\Scripts\Activate.ps1
+pip install -e ".[dev,fulltext]"
+pytest
 ```
 
 Requires Python 3.10 or newer.
 
 ## Quick start
 
-The interface below is the target design and may change before the first release.
-
 ### Command line
 
+With a local model (no API key):
+
 ```bash
-papersift run "Generative AI methods for autonomous agents" \
-  --provider groq \
-  --model <model-name> \
-  --threshold 80 \
-  --since-days 365
+papersift run "Generative AI methods for autonomous agents" --provider ollama --model <model-name>
 ```
+
+With a free online provider:
+
+```bash
+export GROQ_API_KEY=...        # Windows PowerShell: $env:GROQ_API_KEY="..."
+papersift run "Generative AI methods for autonomous agents" \
+  --provider groq --model <model-name> \
+  --threshold 80 --since-days 365 --fulltext -v
+```
+
+With a backup provider if the first one fails or hits its rate limit:
+
+```bash
+papersift run "my project" --provider groq --model <model-a> --fallback gemini=<model-b>
+```
+
+List the available providers with `papersift providers`, and all options with `papersift run --help`.
 
 ### Python
 
 ```python
 from papersift import Scout
+from papersift.providers import create_provider
 
+provider = create_provider("groq", "<model-name>")
 scout = Scout(
-    project_title="Generative AI methods for autonomous agents",
-    provider="groq",
-    model="<model-name>",
+    "Generative AI methods for autonomous agents",
+    provider,
     relevance_threshold=80,
+    fulltext=True,
 )
-results = scout.run(max_results=100)
+for result in scout.run():
+    print(result.score, result.paper.title, result.pdf_path)
 ```
 
-### GUI
-
-```bash
-papersift gui
-```
+Model names change often, so look up the current free models on your provider's website.
 
 ## Configuration
 
-API keys are read from environment variables, never from code. Copy `.env.example` to `.env` and fill in only the providers you use:
+API keys are read from environment variables, never from code or command-line arguments. Copy `.env.example` to `.env` and fill in only the providers you use; `papersift` loads `.env` automatically.
 
-```bash
-OPENAI_COMPAT_API_KEY=...
-GEMINI_API_KEY=...
-```
-
-Local Ollama needs no key; just make sure the Ollama server is running and the model is pulled.
+| Provider | Variable |
+|---|---|
+| `gemini` | `GEMINI_API_KEY` |
+| `groq` | `GROQ_API_KEY` |
+| `openrouter` | `OPENROUTER_API_KEY` |
+| `together` | `TOGETHER_API_KEY` |
+| `cerebras` | `CEREBRAS_API_KEY` |
+| `mistral` | `MISTRAL_API_KEY` |
+| `openai` | `OPENAI_API_KEY` |
+| `openai_compat` (with `--base-url`) | `OPENAI_COMPAT_API_KEY` |
+| `ollama` | none (the Ollama server must be running) |
 
 > Never commit your `.env` file. It is already listed in `.gitignore`.
 
 ## Output
 
-Downloaded papers and their metadata are saved in a folder you choose (default `papersift_output/`):
+Results are saved in the folder you choose (default `papersift_output/`):
 
 ```
 papersift_output/
-  pdfs/        # downloaded PDFs, named by score, year and title
+  pdfs/        # downloaded PDFs, named <score>-<year>-<title>.pdf
   metadata/    # one JSON file per paper: authors, abstract, arXiv id,
                # scores and the reasoning behind them
+  .cache/      # SQLite cache and temporary downloads
 ```
 
 ## How it works
@@ -111,21 +126,21 @@ papersift_output/
 1. An LLM turns your project description into precise academic search keywords.
 2. The arXiv API returns candidate papers from the date window you set.
 3. **Stage 1:** each abstract is scored against your project with a rubric.
-4. **Stage 2:** the top papers are downloaded and scored again from their full text.
+4. **Stage 2** (`--fulltext`): the best papers are downloaded and scored again from their full text; both scores are blended (the full text counts more).
 5. Papers above your threshold are saved with their metadata and explanations.
 
 ## Roadmap
 
 - [x] Prototype: arXiv search, abstract scoring with a local model, PDF and metadata download
-- [ ] Common provider interface (Ollama, OpenAI-compatible, Gemini)
-- [ ] Retry with backoff and provider fallback
-- [ ] Fixed arXiv query building and date-window parameter
-- [ ] Rubric-based scoring with robust JSON parsing
-- [ ] SQLite cache and deduplication
-- [ ] Command-line interface
-- [ ] Full-text ranking stage
+- [x] Common provider interface (Ollama, OpenAI-compatible, Gemini)
+- [x] Retry with backoff and provider fallback
+- [x] Fixed arXiv query building and date-window parameter
+- [x] Rubric-based scoring with robust JSON parsing
+- [x] SQLite cache and deduplication
+- [x] Command-line interface
+- [x] Full-text ranking stage
 - [ ] Optional GUI
-- [ ] Tests, documentation and first PyPI release
+- [ ] First PyPI release
 - [ ] More paper sources (for example Semantic Scholar, OpenAlex)
 
 ## Contributing
@@ -134,7 +149,7 @@ Contributions are welcome, from first-time contributors too.
 
 1. Open an issue to discuss what you want to work on, or pick one labeled `good first issue`.
 2. Create a branch from `main` (`git checkout -b feature/short-description`).
-3. Make your change and add or update tests.
+3. Make your change and add or update tests (`pytest`).
 4. Open a pull request describing what you changed and why.
 
 Please keep pull requests small and focused so they are easy to review.
@@ -145,7 +160,7 @@ If `papersift` helps your research, please cite the survey whose paper selection
 
 > *Architectural Patterns for Self-Improving Intelligent Agents: A Systematic Survey of Generative and Cognitive Approaches.* SN Computer Science. https://doi.org/10.1007/s42979-026-05333-6
 
-A `CITATION.cff` file will be added to the repository for the software itself.
+A `CITATION.cff` file describes how to cite the software itself.
 
 ## Contributors
 
