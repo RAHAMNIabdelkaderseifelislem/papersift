@@ -5,13 +5,31 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "papersift"
 version = "0.1.0"
-description = "LLM-powered agent that finds, ranks and downloads research papers relevant to your project."
+description = "An open-source LLM-powered research assistant for discovering, evaluating, ranking, and organizing academic papers."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
-authors = [{ name = "Seif El Islem" }]
-keywords = ["arxiv", "llm", "research", "literature-review", "agents"]
+authors = [
+    { name = "Abedelkader Seif El Islem Rahmani" },
+    { name = "Mohammed Bennour" }
+]
+keywords = [
+    "academic-research",
+    "research-assistant",
+    "literature-review",
+    "systematic-review",
+    "arxiv",
+    "paper-discovery",
+    "paper-ranking",
+    "llm",
+    "ai-agents",
+    "research-automation",
+    "ollama",
+    "gemini",
+    "openai-compatible",
+    "scientific-research"
+]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -37,7 +55,9 @@ papersift = "papersift.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/RAHAMNIabdelkaderseifelislem/papersift"
+Repository = "https://github.com/RAHAMNIabdelkaderseifelislem/papersift"
 Issues = "https://github.com/RAHAMNIabdelkaderseifelislem/papersift/issues"
+Changelog = "https://github.com/RAHAMNIabdelkaderseifelislem/papersift/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 include = ["papersift*"]
