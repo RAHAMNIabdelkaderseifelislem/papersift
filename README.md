@@ -158,14 +158,14 @@ Please keep pull requests small and focused so they are easy to review.
 
 If `papersift` helps your research, please cite the survey whose paper selection it supported:
 
-> *Architectural Patterns for Self-Improving Intelligent Agents: A Systematic Survey of Generative and Cognitive Approaches.* SN Computer Science. https://doi.org/10.1007/s42979-026-05333-6
+> Rahmani, A.S.E., Yahiaoui, Y. & Bouziane, A. "Architectural Patterns for Self-Improving Intelligent Agents: A Systematic Survey of Generative and Cognitive Approaches." *SN Computer Science* **7**, 746 (2026). https://doi.org/10.1007/s42979-026-05333-6
 
 A `CITATION.cff` file describes how to cite the software itself.
 
 ## Contributors
 
-- **Seif El Islem** (lead developer)
-- Contributors are listed here as they join.
+- **Abdelkader Seif El Islem Rahmani** (lead developer)
+- **Mohammed Bennour** (GUI lead developer).
 
 ## License
 
