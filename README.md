@@ -1,10 +1,20 @@
-# papersift
+# PaperSift
 
-**Find the papers that matter to your research, automatically.**
+**An Open-Source AI Research Assistant for Academic Paper Discovery and Evaluation.**
 
-`papersift` is an LLM-powered agent that searches arXiv for papers related to your research project, scores how relevant each one is, and downloads the best ones together with structured metadata. It works with local models and with most free online LLM API providers.
+PaperSift is an LLM-powered research assistant that helps researchers
+discover, evaluate, rank, and organize academic papers based on their
+research interests.
 
-> **Status:** alpha (0.1.0). The command-line tool, multi-provider support, two-stage ranking and caching work. The optional GUI is still in development. See the [Roadmap](#roadmap).
+It combines academic search, structured relevance assessment,
+multi-provider LLM integration, and automated paper retrieval
+into a unified workflow.
+
+> **Project status:** Pre-release / alpha.
+>
+> The core CLI, multi-provider support, two-stage ranking, and caching
+> are implemented. The graphical interface is being integrated.
+> The first public PyPI release is planned for version 0.1.0.
 
 ## Why
 
@@ -22,8 +32,23 @@ Starting a literature review means reading hundreds of abstracts to find the few
 
 ## Installation
 
+PaperSift is preparing for its first PyPI release.
+
+### Install from source
+
 ```bash
-pip install papersift
+git clone https://github.com/RAHAMNIabdelkaderseifelislem/papersift.git
+cd papersift
+
+python -m venv .venv
+
+# Linux / macOS
+source .venv/bin/activate
+
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+
+pip install -e ".[fulltext]"
 ```
 
 With full-text ranking:
@@ -131,17 +156,29 @@ papersift_output/
 
 ## Roadmap
 
-- [x] Prototype: arXiv search, abstract scoring with a local model, PDF and metadata download
-- [x] Common provider interface (Ollama, OpenAI-compatible, Gemini)
-- [x] Retry with backoff and provider fallback
-- [x] Fixed arXiv query building and date-window parameter
-- [x] Rubric-based scoring with robust JSON parsing
-- [x] SQLite cache and deduplication
+### Core
+- [x] arXiv paper discovery
+- [x] Multi-provider LLM integration
+- [x] Retry and provider fallback
+- [x] Rubric-based relevance scoring
+- [x] SQLite caching and deduplication
 - [x] Command-line interface
-- [x] Full-text ranking stage
-- [ ] Optional GUI
-- [ ] First PyPI release
-- [ ] More paper sources (for example Semantic Scholar, OpenAlex)
+- [x] Optional full-text ranking
+
+### Application
+- [ ] Graphical user interface integration
+- [ ] Unified CLI and GUI configuration
+- [ ] End-to-end application testing
+
+### Distribution
+- [ ] First PyPI release (0.1.0)
+- [ ] Installation and packaging verification
+- [ ] Public documentation
+
+### Future
+- [ ] Additional academic sources (Semantic Scholar, OpenAlex)
+- [ ] Extended export formats
+- [ ] Improved research project management
 
 ## Contributing
 
@@ -156,16 +193,32 @@ Please keep pull requests small and focused so they are easy to review.
 
 ## Citation
 
-If `papersift` helps your research, please cite the survey whose paper selection it supported:
+PaperSift was developed to support academic literature discovery
+and research paper selection.
 
-> Rahmani, A.S.E., Yahiaoui, Y. & Bouziane, A. "Architectural Patterns for Self-Improving Intelligent Agents: A Systematic Survey of Generative and Cognitive Approaches." *SN Computer Science* **7**, 746 (2026). https://doi.org/10.1007/s42979-026-05333-6
+If you use PaperSift in your research, please cite the software
+using the citation information provided in `CITATION.cff`.
 
-A `CITATION.cff` file describes how to cite the software itself.
+### Associated research publication
 
-## Contributors
+The development of PaperSift supported the literature discovery
+and paper selection process for the following publication:
 
-- **Abdelkader Seif El Islem Rahmani** (lead developer)
-- **Mohammed Bennour** (GUI lead developer).
+Rahmani, Abedelkader Seif El Islem, Yahiaoui, Yasser & Bouziane,
+Abdelghani.
+
+"Architectural Patterns for Self-Improving Intelligent Agents:
+A Systematic Survey of Generative and Cognitive Approaches."
+
+SN Computer Science, 7, 746 (2026).
+
+https://doi.org/10.1007/s42979-026-05333-6
+
+
+## Software Authors
+
+- Abedelkader Seif El Islem Rahmani
+- Mohammed Bennour
 
 ## License
 
