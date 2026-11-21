@@ -21,3 +21,4 @@ arxiv_research/
 .vscode/
 .idea/
 .DS_Store
+.agents/skills/developing-with-streamlit
