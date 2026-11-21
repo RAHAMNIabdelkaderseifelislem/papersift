@@ -28,47 +28,38 @@ Starting a literature review means reading hundreds of abstracts to find the few
 - **Many LLM providers.** Local Ollama, Gemini, and any OpenAI-compatible API (Groq, OpenRouter, Together, Cerebras, Mistral, OpenAI, or your own `--base-url`), with automatic retry on rate limits and optional fallback to a backup provider.
 - **Explainable results.** Each saved paper comes with its scores, strengths, limitations and reasoning.
 - **Local cache.** Papers already scored are not scored again, so re-running is cheap.
-- **Optional GUI** *(in development)*.
+- **Optional GUI**.
 
 ## Installation
 
-PaperSift is preparing for its first PyPI release.
 
-### Install from source
-
+For installation, use:
 ```bash
-git clone https://github.com/RAHAMNIabdelkaderseifelislem/papersift.git
-cd papersift
-
-python -m venv .venv
-
-# Linux / macOS
-source .venv/bin/activate
-
-# Windows PowerShell
-.venv\Scripts\Activate.ps1
-
-pip install -e ".[fulltext]"
+pip install papersift
 ```
 
-With full-text ranking:
 
+For the GUI:
+```bash
+pip install "papersift[gui]"
+```
+
+
+For full-text PDF processing:
 ```bash
 pip install "papersift[fulltext]"
 ```
 
-For development:
-
+For both optional features:
 ```bash
-git clone https://github.com/RAHAMNIabdelkaderseifelislem/papersift.git
-cd papersift
-python -m venv venv
-source venv/bin/activate        # Windows PowerShell: .\venv\Scripts\Activate.ps1
-pip install -e ".[dev,fulltext]"
-pytest
+pip install "papersift[gui,fulltext]"
 ```
 
-Requires Python 3.10 or newer.
+
+For developers:
+```bash
+pip install "papersift[dev,gui,fulltext]"
+```
 
 ## Quick start
 
